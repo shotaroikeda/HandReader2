@@ -34,33 +34,67 @@ def main():
     # This is the model used for processing.
     # 0 will be stored in the 0th index, 1 will be stored in the 1st index and so on
     model = np.zeros([10, 28, 28])
+    totals = np.zeros([10])
 
     # Example code
     # Create a generator to begin reading numbers
     generator_func = read_num('training')
 
-    # You can call generator functions in two ways:
-    # Method 1. Use the next() function.
-    arr_and_num = generator_func.next()
+    for arr, num in generator_func:
+        model[num] += arr
+        totals[num] += 1
 
-    # Read_num is a tuple. The 0th index will return a numpy array
-    arr_like = arr_and_num[0]
-    # The 1st will return the number the image is supposed to represent
-    num = arr_and_num[1]
-
-    # Using the pretty print function to visualize the number
-    pprint_num(arr_like)
-    # Confirm the image is our number
-    print(num)
-    
-    # Method 2. Using a for loop
-    for arr_and_num in generator_func:
-        # Won't go through everything, but the logic is the same.
-        # For the first one there is 60000 data sets. So you probably
-        # Don't want to print them all...
-        break
+    return (model, totals)
 
 
+def predict(model, totals, v=False):
+    test_set = read_num('test')
+
+    prob = np.vectorize(map_prob)
+
+    for arr, num in test_set:
+        # Create the probability map
+        prob_map = [np.multiply.reduce(
+            np.multiply.reduce(
+                prob(arr, model[i], totals[i])))
+                    for i in range(10)]
+
+        predict = np.argmax(prob_map)
+
+        if v:
+            if predict != num:
+                pprint_num(arr)
+
+        yield predict, num
+
+
+def process(model, totals, v=False, vv=False, every=False):
+    pred = predict(model, totals, vv)
+
+    total_right = 0
+    total = 0
+    for p, n in pred:
+        if p == n:
+            total_right += 1
+
+        total += 1
+
+        if v:
+            if total % 50 == 0:
+                print(total) 
+
+        if (not every) and total == 1000:
+            return total_right, total
+
+    return total_right, total
+
+def map_prob(test_elm, model_elm, total):
+    outof = model_elm
+
+    if test_elm == 0:
+        outof = total - outof
+
+    return (np.float128(outof) + 1) / (total + 11)
 
 ####################################
 # Utility Functions for you to use #
@@ -88,30 +122,51 @@ def pprint_num(arr_like):
 
     print(dash)
 
-def produce_heatmap(model, save=False):
-    
-    ##############################################################
-    # This function is a helper function for your needs.         #
-    # This will save a heatmap of your models.                   #
-    #                                                            #
-    # @args:                                                     #
-    # model - your created model                                 #
-    # save - save a figure as an image rather than displaying it #
-    ##############################################################
-    
+def produce_heatmap(model, every=True, save=False):
+
+    #################################################################################
+    # This function is a helper function for your needs.                            #
+    # This will save a heatmap of your models.                                      #
+    #                                                                               #
+    # @args:                                                                        #
+    # model - your created model                                                    #
+    # save - save a figure as an image rather than displaying it                    #
+    # every - pass in the model (rather than a single number) and display a heatmap #
+    #################################################################################
+
     col_label = range(28)
     row_label = range(28)
 
-    for i in range(10):
+    if every:
+        for i in range(10):
+            plt.pcolor(np.flipud(model[i]))
+            plt.xticks(col_label)
+            plt.yticks(row_label)
+            plt.axis('off')
+            plt.title("HeatMap for %d" % (i))
+            cb = plt.colorbar()
+            cb.set_label("Frequency")
+
+            if save:
+                plt.savefig('imgs/%d.png' % (i), bbox_inches='tight')
+            else:
+                plt.show()
+
+            plt.close()
+
+    else:
+        plt.pcolor(np.flipud(model))
+        plt.xticks(col_label)
+        plt.yticks(row_label)
+        plt.axis('off')
         cb = plt.colorbar()
         cb.set_label("Frequency")
-        plt.pcolor(model[i].flipud())
-        plt.xticks(col_label)
-        plt.xlabel('X')
-        plt.yticks(row_label)
-        plt.ylabel('Y')
-        plt.title("HeatMap for %d" % (i))
-        plt.show()
+
+        if save:
+            plt.savefig('imgs/temp.png', bbox_inches='tight')
+        else:
+            plt.show()
+
         plt.close()
 
 
@@ -120,4 +175,6 @@ def produce_heatmap(model, save=False):
 ######################
 
 if __name__ == '__main__':
-    main()
+    model, totals = main()
+    produce_heatmap(model, True, True)
+    process(model, totals, True, True)

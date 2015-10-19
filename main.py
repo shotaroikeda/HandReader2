@@ -88,6 +88,7 @@ def process(model, totals, v=False, vv=False, every=False):
 
     return total_right, total
 
+
 def map_prob(test_elm, model_elm, total):
     outof = model_elm
 

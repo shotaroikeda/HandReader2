@@ -6,7 +6,7 @@ import struct
 
 
 # Constant path variables
-PATH_TO_MNIST = "../mnist/"
+PATH_TO_MNIST = "mnist/"
 PATH_TO_TRAINING_IMGS = PATH_TO_MNIST + "train-images.idx3-ubyte"
 PATH_TO_TRAINING_LABELS = PATH_TO_MNIST + "train-labels.idx1-ubyte"
 PATH_TO_T10K_IMGS = PATH_TO_MNIST + "t10k-images.idx3-ubyte"

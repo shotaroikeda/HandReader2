@@ -88,32 +88,52 @@ def pprint_num(arr_like):
 
     print(dash)
 
-def produce_heatmap(model, save=False):
-    
-    ##############################################################
-    # This function is a helper function for your needs.         #
-    # This will save a heatmap of your models.                   #
-    #                                                            #
-    # @args:                                                     #
-    # model - your created model                                 #
-    # save - save a figure as an image rather than displaying it #
-    ##############################################################
-    
+def produce_heatmap(model, every=True, save=False):
+
+    #################################################################################
+    # This function is a helper function for your needs.                            #
+    # This will save a heatmap of your models.                                      #
+    #                                                                               #
+    # @args:                                                                        #
+    # model - your created model                                                    #
+    # save - save a figure as an image rather than displaying it                    #
+    # every - pass in the model (rather than a single number) and display a heatmap #
+    #################################################################################
+
     col_label = range(28)
     row_label = range(28)
 
-    for i in range(10):
+    if every:
+        for i in range(10):
+            plt.pcolor(np.flipud(model[i]))
+            plt.xticks(col_label)
+            plt.yticks(row_label)
+            plt.axis('off')
+            plt.title("HeatMap for %d" % (i))
+            cb = plt.colorbar()
+            cb.set_label("Frequency")
+
+            if save:
+                plt.savefig('imgs/%d.png' % (i), bbox_inches='tight')
+            else:
+                plt.show()
+
+            plt.close()
+
+    else:
+        plt.pcolor(np.flipud(model))
+        plt.xticks(col_label)
+        plt.yticks(row_label)
+        plt.axis('off')
         cb = plt.colorbar()
         cb.set_label("Frequency")
-        plt.pcolor(model[i].flipud())
-        plt.xticks(col_label)
-        plt.xlabel('X')
-        plt.yticks(row_label)
-        plt.ylabel('Y')
-        plt.title("HeatMap for %d" % (i))
-        plt.show()
-        plt.close()
 
+        if save:
+            plt.savefig('imgs/temp.png', bbox_inches='tight')
+        else:
+            plt.show()
+
+        plt.close()
 
 ######################
 # Internal Functions #

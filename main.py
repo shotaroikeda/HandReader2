@@ -44,11 +44,14 @@ def main():
     # It's your choice if you want to use Numpy or just use regular Python lists.                     #
     ###################################################################################################
 
+    print("Training Data set...")
     model, totals = train()
+    print("Producing heatmap...")
     produce_heatmap(model, True, True)
+    print("Testing results...")
     num_right, num_wrong = predict(model, totals, True)
 
-    print("%10.4f" % (float(num_right)/num_wrong))
+    print("Accuracy: %.4f" % (float(num_right)/num_wrong))
 
 
 def train():
@@ -89,11 +92,11 @@ def train():
     # After you train your model, you may want to plot a heatmap of it
     # Run produce_heatmap(model, True, True) to save your plot as an image
     produce_heatmap(model, True, True)
-    
+
     return model, totals
 
 
-def predict(model, totals, v=False, vv=False, every=False):
+def predict(model, totals, v=False, vv=False, every=False, t_max=1000):
     """
     Predict your model using the MNIST database.
 
@@ -128,10 +131,13 @@ def predict(model, totals, v=False, vv=False, every=False):
         num_total += 1
 
         if v:
-            if num_total % 50 == 0:
-                print(total) 
+            if num_total == 50:
+                print("%6d" % (num_total))
+            elif num_total % 50 == 0:
+                print("\r%6d" % (num_total))
 
-        if (not every) and num_total == 1000:
+        if (not every) and num_total == t_max:
+            print("\rDone    ")
             return num_right, num_total
 
     return num_right, num_total
